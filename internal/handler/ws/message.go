@@ -14,20 +14,27 @@ type MsgService interface {
 	GetAll() ([]*model.Message, error)
 }
 
-type MsgListener struct {
-	MsgCh chan *model.Message
-}
-
 type WsMsgHandler struct {
 	MsgListener
 	WsManager  *websocket.Upgrader
 	MsgService MsgService
 }
 
+type MsgListener struct {
+	Clients map[*websocket.Conn]chan *model.Message // Map of clients and their channels
+	mu      sync.Mutex                              // Mutex to protect Clients map
+}
+
 func NewHandler(msgService MsgService) *WsMsgHandler {
-	msgL := MsgListener{MsgCh: make(chan *model.Message)}
+	msgL := MsgListener{
+		Clients: make(map[*websocket.Conn]chan *model.Message),
+	}
 	wsM := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
-	return &WsMsgHandler{MsgListener: msgL, WsManager: &wsM, MsgService: msgService}
+	return &WsMsgHandler{
+		MsgListener: msgL,
+		WsManager:   &wsM,
+		MsgService:  msgService,
+	}
 }
 
 func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) error {
@@ -37,6 +44,12 @@ func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 	defer ws.Close()
+
+	h.mu.Lock()
+	slog.Info("Locked mutex")
+	h.Clients[ws] = make(chan *model.Message, 256)
+	h.mu.Unlock()
+	slog.Info("Unlocked mutex")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -52,16 +65,23 @@ func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) 
 
 	wg.Wait()
 
+	slog.Info("Quitting the conenction")
+
 	return nil
 }
 
 func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
+	slog.Info("Read Message invoked")
 	for {
+
 		msgT, content, err := ws.ReadMessage()
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Error("Error reading message: " + err.Error())
 			return
 		}
+
+		slog.Info("Received message", slog.Attr{Value: slog.AnyValue(content)})
+
 		if msgT != websocket.TextMessage {
 			continue
 		}
@@ -71,32 +91,46 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 			continue
 		}
 
-		msg, err := h.MsgService.Create(string(content))
+		msg, err := h.MsgService.Create(contentStr)
 		if err != nil {
-			slog.Error(err.Error())
-			return
+			slog.Error("Error creating message: " + err.Error())
+			continue
 		}
 
-		select {
-		case h.MsgCh <- msg:
-			slog.Info("message is sent")
-		case <-r.Context().Done():
-			return
+		h.mu.Lock()
+		for client, ch := range h.Clients {
+			select {
+			case ch <- msg:
+				slog.Info("Message broadcasted to client", slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())})
+			default:
+				slog.Info("Client's channel is full, skipping", slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())})
+			}
 		}
+		h.mu.Unlock()
 	}
 }
 
 func (h *WsMsgHandler) WriteMessage(r *http.Request, ws *websocket.Conn) {
+	clientCh := h.Clients[ws]
+	slog.Info("Write Message invoked")
+
 	for {
 		select {
-		case msg, ok := <-h.MsgCh:
+		case msg, ok := <-clientCh:
 			if !ok {
+				slog.Error("Client channel closed")
 				return
 			}
-			slog.Info("message is recieved")
 
-			ws.WriteMessage(websocket.TextMessage, []byte(msg.Content))
+			err := ws.WriteJSON(msg)
+			if err != nil {
+				slog.Error("Error writing message to client", slog.Attr{Key: "Client", Value: slog.AnyValue(ws.RemoteAddr())})
+				return
+			}
+			slog.Info("Message sent to client", slog.Attr{Key: "Message", Value: slog.AnyValue(msg.Content)})
+
 		case <-r.Context().Done():
+			slog.Info("Connection context done")
 			return
 		}
 	}
