@@ -42,4 +42,5 @@ lint:
 
 recovery:
 	python3 recovery.py
-	echo "recovered"
+	make run &
+	echo "Recovered"
