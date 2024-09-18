@@ -39,3 +39,7 @@ profile:
 lint:
 	golines -w .
 	gofmt -w .
+
+recovery:
+	python3 recovery.py
+	echo "recovered"
