@@ -23,7 +23,7 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) HandleClientListEventChannel(ctx context.Context) {
+func (m *Manager) HandleClientListEventChannel() {
 	for {
 		select {
 		case clientListEvent, ok := <-m.ClientListEventChannel:
