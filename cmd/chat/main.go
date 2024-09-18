@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 
@@ -46,7 +47,7 @@ func main() {
 		return wsMsgH.HandleConnection(c.Response(), c.Request())
 	})
 
-	err := e.Start("0.0.0.0:8000")
+	err := e.Start(os.Getenv("SERVER_ADDRESS"))
 	if err != nil {
 		slog.Error(err.Error())
 	}

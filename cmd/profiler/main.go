@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -10,7 +11,8 @@ func main() {
 	client := http.Client{}
 
 	start := time.Now()
-	res, err := client.Get("http://localhost:8000/messages/count")
+	addr := fmt.Sprintf("http://%s/messages/count", os.Getenv("SERVER_ADDRESS"))
+	res, err := client.Get(addr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
