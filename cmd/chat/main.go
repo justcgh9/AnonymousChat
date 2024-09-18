@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/justcgh9/AnonymousChat/database/postgres"
-	"github.com/justcgh9/AnonymousChat/internal/handler/ws"
 	httpH "github.com/justcgh9/AnonymousChat/internal/handler/http"
+	"github.com/justcgh9/AnonymousChat/internal/handler/ws"
 	messageRepo "github.com/justcgh9/AnonymousChat/internal/repo/message"
 	messageService "github.com/justcgh9/AnonymousChat/internal/service/message"
 )
@@ -18,10 +18,10 @@ func main() {
 	db := postgres.NewConn()
 	msgR := messageRepo.NewRepo(db)
 	msgS := messageService.NewService(msgR)
-	
+
 	msgH := httpH.NewHandler(msgS)
 	wsMsgH := ws.NewHandler(msgS)
-	
+
 	e.GET("/ping", func(c echo.Context) error {
 		c.Response().Write([]byte("asdasdadasd"))
 		return nil
@@ -34,8 +34,12 @@ func main() {
 		return nil
 	})
 
+	e.GET("/messages", func(c echo.Context) error {
+		return msgH.HandleGetMessages(c.Response(), c.Request())
+	})
+
 	e.GET("/messages/count", func(c echo.Context) error {
-		return msgH.HandleGetMessageCount(c.Response(), c.Request())
+		return msgH.HandleGetMessagesCount(c.Response(), c.Request())
 	})
 
 	e.GET("/ws/chat", func(c echo.Context) error {

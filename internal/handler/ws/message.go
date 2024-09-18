@@ -26,17 +26,18 @@ type WsMsgHandler struct {
 
 func NewHandler(msgService MsgService) *WsMsgHandler {
 	msgL := MsgListener{MsgCh: make(chan *model.Message)}
-	wsM := websocket.Upgrader{}
-	return &WsMsgHandler{MsgListener: msgL, WsManager: &wsM}
+	wsM := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {return true}}
+	return &WsMsgHandler{MsgListener: msgL, WsManager: &wsM, MsgService: msgService}
 }
 
 func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) error {
 	ws, err := h.WsManager.Upgrade(w, r, nil)
 	if err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 	defer ws.Close()
-	
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 	
@@ -64,7 +65,12 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 		if msgT != websocket.TextMessage {
 			continue
 		}
-
+		
+		contentStr := string(content)
+		if contentStr == "" {
+			continue
+		}
+		
 		msg, err := h.MsgService.Create(string(content))
 		if err != nil {
 			slog.Error(err.Error())
