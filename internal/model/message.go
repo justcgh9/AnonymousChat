@@ -1,13 +1,9 @@
 package model
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 type Message struct {
-	Id        uuid.UUID
+	Id        int
 	CreatedAt time.Time `db:"created_at"`
 	Content   string
 }

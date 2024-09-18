@@ -6,16 +6,16 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/justcgh9/AnonymousChat/database/postgres"
-	httpH "github.com/justcgh9/AnonymousChat/internal/handler/http"
+	"github.com/justcgh9/AnonymousChat/database/sqlite"
 	"github.com/justcgh9/AnonymousChat/internal/handler/ws"
+	httpH "github.com/justcgh9/AnonymousChat/internal/handler/http"
 	messageRepo "github.com/justcgh9/AnonymousChat/internal/repo/message"
 	messageService "github.com/justcgh9/AnonymousChat/internal/service/message"
 )
 
 func main() {
 	e := echo.New()
-	db := postgres.NewConn()
+	db := sqlite.NewConn()
 	msgR := messageRepo.NewRepo(db)
 	msgS := messageService.NewService(msgR)
 

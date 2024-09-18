@@ -6,9 +6,9 @@ import (
 
 const schema = `
 CREATE TABLE IF NOT EXISTS message (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW() 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 `
 
