@@ -20,13 +20,13 @@ type MsgListener struct {
 
 type WsMsgHandler struct {
 	MsgListener
-	WsManager   *websocket.Upgrader
-	MsgService	MsgService
+	WsManager  *websocket.Upgrader
+	MsgService MsgService
 }
 
 func NewHandler(msgService MsgService) *WsMsgHandler {
 	msgL := MsgListener{MsgCh: make(chan *model.Message)}
-	wsM := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {return true}}
+	wsM := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
 	return &WsMsgHandler{MsgListener: msgL, WsManager: &wsM, MsgService: msgService}
 }
 
@@ -40,8 +40,8 @@ func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) 
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-	
-	go func(){
+
+	go func() {
 		defer wg.Done()
 		h.ReadMessage(r, ws)
 	}()
@@ -65,12 +65,12 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 		if msgT != websocket.TextMessage {
 			continue
 		}
-		
+
 		contentStr := string(content)
 		if contentStr == "" {
 			continue
 		}
-		
+
 		msg, err := h.MsgService.Create(string(content))
 		if err != nil {
 			slog.Error(err.Error())
@@ -78,10 +78,10 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 		}
 
 		select {
-			case h.MsgCh<- msg:
-				slog.Info("message is sent")
-			case <-r.Context().Done():
-				return
+		case h.MsgCh <- msg:
+			slog.Info("message is sent")
+		case <-r.Context().Done():
+			return
 		}
 	}
 }
@@ -89,15 +89,15 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 func (h *WsMsgHandler) WriteMessage(r *http.Request, ws *websocket.Conn) {
 	for {
 		select {
-			case msg, ok := <-h.MsgCh:
-				if !ok {
-					return
-				}
-				slog.Info("message is recieved")
-
-				ws.WriteMessage(websocket.TextMessage, []byte(msg.Content))
-			case <-r.Context().Done():
+		case msg, ok := <-h.MsgCh:
+			if !ok {
 				return
+			}
+			slog.Info("message is recieved")
+
+			ws.WriteMessage(websocket.TextMessage, []byte(msg.Content))
+		case <-r.Context().Done():
+			return
 		}
 	}
 }

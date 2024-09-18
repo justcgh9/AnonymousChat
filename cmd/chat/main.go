@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/justcgh9/AnonymousChat/database/sqlite"
-	"github.com/justcgh9/AnonymousChat/internal/handler/ws"
 	httpH "github.com/justcgh9/AnonymousChat/internal/handler/http"
+	"github.com/justcgh9/AnonymousChat/internal/handler/ws"
 	messageRepo "github.com/justcgh9/AnonymousChat/internal/repo/message"
 	messageService "github.com/justcgh9/AnonymousChat/internal/service/message"
 )

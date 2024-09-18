@@ -3,7 +3,6 @@ package sqlite
 import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-	
 )
 
 func NewConn() *sqlx.DB {

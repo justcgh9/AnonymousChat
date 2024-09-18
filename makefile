@@ -26,21 +26,9 @@ start-db:
 run:
 	go run ./cmd/chat
 
-build:
-	docker build -t avi .
-
-run-c:
-	docker run --name avi --env-file .env -p 8080:8080 avi
-
-rm-c:
-	docker container rm avi
-
-logs-c:
-	docker logs avi
+profile:
+	go run ./cmd/profiler
 
 lint:
 	golines -w .
 	gofmt -w .
-
-check:
-	golangci-lint run 

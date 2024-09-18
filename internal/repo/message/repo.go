@@ -28,6 +28,6 @@ func NewRepo(db *sqlx.DB) *MsgRepo {
 	}
 
 	db.MustExec(schema)
-	
+
 	return repo
 }

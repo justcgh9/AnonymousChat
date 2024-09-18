@@ -3,8 +3,8 @@ package postgres
 import (
 	"os"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/jackc/pgx/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
 func NewConn() *sqlx.DB {

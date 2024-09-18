@@ -19,7 +19,10 @@ func NewHandler(msgService MsgService) *HttpMsgHandler {
 	return &HttpMsgHandler{MsgService: msgService}
 }
 
-func (h *HttpMsgHandler) HandleGetMessagesCount(w httpNet.ResponseWriter, r *httpNet.Request) error {
+func (h *HttpMsgHandler) HandleGetMessagesCount(
+	w httpNet.ResponseWriter,
+	r *httpNet.Request,
+) error {
 	msgs, err := h.GetAll()
 	if err != nil {
 		return err
