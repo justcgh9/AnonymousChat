@@ -1,4 +1,11 @@
-ENVFILE=.env.template
+ENVFILETEMPLATE=.env.template
+
+ifneq ("$(wildcard $(ENVFILETEMPLATE))","")
+	include $(ENVFILETEMPLATE)
+	export $(shell sed 's/=.*//' $(ENVFILETEMPLATE))
+endif
+
+ENVFILE=.env
 
 ifneq ("$(wildcard $(ENVFILE))","")
 	include $(ENVFILE)
