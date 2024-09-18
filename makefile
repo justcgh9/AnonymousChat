@@ -1,4 +1,11 @@
-ENVFILE=.env.template
+ENVFILETEMPLATE=.env.template
+
+ifneq ("$(wildcard $(ENVFILETEMPLATE))","")
+	include $(ENVFILETEMPLATE)
+	export $(shell sed 's/=.*//' $(ENVFILETEMPLATE))
+endif
+
+ENVFILE=.env
 
 ifneq ("$(wildcard $(ENVFILE))","")
 	include $(ENVFILE)
@@ -32,3 +39,8 @@ profile:
 lint:
 	golines -w .
 	gofmt -w .
+
+recovery:
+	python3 recovery.py
+	make run
+	
