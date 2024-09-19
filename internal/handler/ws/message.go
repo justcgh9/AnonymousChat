@@ -46,10 +46,8 @@ func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) 
 	defer ws.Close()
 
 	h.mu.Lock()
-	slog.Info("Locked mutex")
 	h.Clients[ws] = make(chan *model.Message, 256)
 	h.mu.Unlock()
-	slog.Info("Unlocked mutex")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -71,7 +69,6 @@ func (h *WsMsgHandler) HandleConnection(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
-	slog.Info("Read Message invoked")
 	for {
 
 		msgT, content, err := ws.ReadMessage()
@@ -103,7 +100,6 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 			case ch <- msg:
 				slog.Info("Message broadcasted to client", slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())})
 			default:
-				slog.Info("Client's channel is full, skipping", slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())})
 			}
 		}
 		h.mu.Unlock()
@@ -111,26 +107,23 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 }
 
 func (h *WsMsgHandler) WriteMessage(r *http.Request, ws *websocket.Conn) {
+	h.mu.Lock()
 	clientCh := h.Clients[ws]
-	slog.Info("Write Message invoked")
+	h.mu.Unlock()
 
 	for {
 		select {
 		case msg, ok := <-clientCh:
 			if !ok {
-				slog.Error("Client channel closed")
 				return
 			}
 
 			err := ws.WriteJSON(msg)
 			if err != nil {
-				slog.Error("Error writing message to client", slog.Attr{Key: "Client", Value: slog.AnyValue(ws.RemoteAddr())})
 				return
 			}
-			slog.Info("Message sent to client", slog.Attr{Key: "Message", Value: slog.AnyValue(msg.Content)})
 
 		case <-r.Context().Done():
-			slog.Info("Connection context done")
 			return
 		}
 	}

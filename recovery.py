@@ -20,7 +20,7 @@ if pid:
     subprocess.call(kill_command, shell=True)
     print(f"Sent SIGKILL signal to processes with PID: {pid} {e_pid}")
     
-    time_lag = 10
+    time_lag = 5
     for i in range(time_lag):
         print(f"Recovering after {time_lag - i} seconds...")
         time.sleep(1)
