@@ -1,5 +1,5 @@
 # Project structure
-Client - /web folder
+Client - /web folder \
 Server - other folders (cmd - the entrypoints of the application, internal - incapsulated functionality, database - storages functonality, test - testing)
 
 ## Launch anonymous chat
