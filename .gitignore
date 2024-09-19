@@ -4,3 +4,6 @@
 
 .vscode
 .idea
+
+# test coverage file
+*.out

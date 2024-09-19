@@ -9,6 +9,7 @@ import (
 
 type MsgService interface {
 	GetAll() ([]*model.Message, error)
+	Create(content string) (*model.Message, error)
 }
 
 type HttpMsgHandler struct {

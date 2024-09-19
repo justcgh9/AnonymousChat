@@ -44,3 +44,9 @@ recovery:
 	python3 recovery.py
 	make run
 	
+tests:
+	go test -v ./test/...
+
+tests-cover:
+	go test -coverprofile=coverage.out ./test/... ./internal... 
+	go tool cover -func=coverage.out 

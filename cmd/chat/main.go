@@ -23,11 +23,6 @@ func main() {
 	msgH := httpH.NewHandler(msgS)
 	wsMsgH := ws.NewHandler(msgS)
 
-	e.GET("/ping", func(c echo.Context) error {
-		c.Response().Write([]byte("asdasdadasd"))
-		return nil
-	})
-
 	fs := http.FileServer(http.Dir("web"))
 
 	e.GET("/", func(c echo.Context) error {

@@ -98,7 +98,10 @@ func (h *WsMsgHandler) ReadMessage(r *http.Request, ws *websocket.Conn) {
 		for client, ch := range h.Clients {
 			select {
 			case ch <- msg:
-				slog.Info("Message broadcasted to client", slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())})
+				slog.Info(
+					"Message broadcasted to client",
+					slog.Attr{Key: "Client", Value: slog.AnyValue(client.RemoteAddr())},
+				)
 			default:
 			}
 		}

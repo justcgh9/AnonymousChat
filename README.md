@@ -2,6 +2,14 @@
 ```
 $ make run
 ```
+## Run tests
+```
+$ make tests
+```
+## Run tests coverage
+```
+$ make tests-cover
+```
 ## Run formatters
 ```
 $ make lint
